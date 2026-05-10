@@ -56,11 +56,11 @@ reloaded = WildfireVLM.from_pretrained("your-hf-org-or-username/WildfireVLM-base
 
 Create and upload a dataset repository, for example:
 
-- `your-hf-org-or-username/wildfirevlm-dataset`
+- `your-hf-org-or-username/WildfireVLM-dataset`
 
 ```bash
-huggingface-cli repo create your-hf-org-or-username/wildfirevlm-dataset --type dataset
-huggingface-cli upload your-hf-org-or-username/wildfirevlm-dataset ./data --repo-type dataset
+huggingface-cli repo create your-hf-org-or-username/WildfireVLM-dataset --type dataset
+huggingface-cli upload your-hf-org-or-username/WildfireVLM-dataset ./data --repo-type dataset
 ```
 
 Users can then load it with:
@@ -68,7 +68,7 @@ Users can then load it with:
 ```python
 from datasets import load_dataset
 
-dataset = load_dataset("your-hf-org-or-username/wildfirevlm-dataset")
+dataset = load_dataset("your-hf-org-or-username/WildfireVLM-dataset")
 ```
 
 ## Helpful links
