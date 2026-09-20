@@ -1,112 +1,80 @@
-<div align="center">
+# _WildfireVLM_
 
-# WildfireVLM: AI-powered Analysis for Early Wildfire Detection and Risk Assessment Using Satellite Imagery
+This repository tracks the WildfireVLM project and now includes instructions to publish project artifacts on the Hugging Face Hub for better discoverability.
 
-[![Paper](https://img.shields.io/badge/Paper-IGARSS%202026-blue?style=for-the-badge&logo=googlescholar)](IGARSS2026_WildfireVLM.pdf) [![Dataset](https://img.shields.io/badge/Dataset-Wildfire%20%26%20Smoke-green?style=for-the-badge&logo=dataset-search)](https://github.com/Ayanzadeh93/_WildfireVLM_) [![Code](https://img.shields.io/badge/Code-PyTorch-red?style=for-the-badge&logo=pytorch)](https://github.com/Ayanzadeh93/_WildfireVLM_) [![Model](https://img.shields.io/badge/Model-YOLOv12-orange?style=for-the-badge)](https://github.com/Ayanzadeh93/_WildfireVLM_)
+## Hugging Face paper page
 
-<br>
+If you are one of the paper authors, submit the paper at:
 
-![WildfireVLM Architecture](assets/architecture.png)
+- https://huggingface.co/papers/submit
 
-<br>
+After submission, add links to:
 
-![WildfireVLM Visualization](assets/visualization.png)
+- This GitHub repository
+- Project page (if available)
+- Model and dataset repos published below
 
-*Official system architecture (top) and qualitative risk reasoning comparison between GPT-4o and Claude 3.5 Sonnet (bottom).*
+## Publish WildfireVLM model checkpoints on Hugging Face
 
----
+Create one Hub model repository per checkpoint (recommended), for example:
 
-[**Overview**](#overview) | [**Architecture**](#architecture) | [**Dataset**](#dataset) | [**Results**](#results) | [**Citation**](#citation)
+- `your-hf-org-or-username/WildfireVLM-base`
+- `your-hf-org-or-username/WildfireVLM-large`
 
-</div>
-
-## 🌟 Overview
-
-Wildfires pose an escalating threat to global ecosystems. Early detection is critical, but traditional satellite monitoring often struggles with faint smoke signals and complex weather conditions. **WildfireVLM** introduces a revolutionary approach:
-
-- **SOTA Detection**: Leverages **YOLOv12** to identify fire zones and smoke plumes in multi-spectral satellite imagery with high precision.
-- **Contextual Reasoning**: Integrates **MLLMs** (GPT-4o, Claude 3.5 Sonnet) to transform raw detections into actionable risk assessments and response recommendations.
-- **Multi-Source Integration**: Harmonizes data from **Landsat-8/9** and **GOES-16** for comprehensive spatial and temporal coverage.
-
-## 🏗️ Architecture
-
-WildfireVLM is built on a modular service-oriented architecture designed for scalability and real-time processing.
-
-1. **Input Module**: Processes Landsat-8/9 and GOES-16 imagery via specialized preprocessing pipelines.
-2. **Detection Core**: Employs **YOLOv12** to localize fire and smoke features.
-3. **VLM Risk Reasoning**: Utilizes MLLMs to analyze detections alongside contextual cues (topography, weather) to generate structured risk reports.
-4. **Reporting**: Stores results in a historical database and generates interactive visual dashboards.
-
-## 📊 Dataset: Wildfire-Smoke-RS
-
-We introduce a meticulously curated dataset for wildfire detection in remote sensing imagery:
-
-- **Sources**: Landsat-8/9 (15-30m resolution), GOES-16 (2km resolution, 5-min refresh).
-- **Size**: 3,771 high-quality labeled images.
-- **Classes**: `Fire Zone`, `Smoke Plume`.
-- **Format**: 416x416 pixel patches, multispectral-aligned.
-
-## 📈 Performance
-
-WildfireVLM sets a new benchmark for wildfire detection accuracy using the YOLOv12 backbone.
-
-| Model              | mAP (%)  | Precision (%) | Recall (%) | F1-score (%) |
-| :----------------- | :------: | :-----------: | :--------: | :----------: |
-| YOLOv8             |   72.1   |     60.7      |    67.6    |     64.0     |
-| YOLOv11            | **84.1** |     51.7      |  **89.8**  |     65.6     |
-| YOLO-NAS           |   54.1   |     56.0      |    57.1    |     56.6     |
-| **YOLOv12 (Ours)** |   74.7   |   **81.1**    |    74.8    |   **77.8**   |
-
-*Note: YOLOv12 is selected as the primary detection core due to its superior balance of precision and F1-score, minimizing false positives critical for disaster management.*
-
-## 🧠 MLLM Integration (LLM-as-Judge)
-
-We evaluate the quality of risk reasoning using an **LLM-as-judge** framework with a shared rubric.
-
-| Model             | Reasoning Score (1-10) |
-| :---------------- | :--------------------: |
-| **GPT-4o**        |        **7.03**        |
-| Claude 3.5 Sonnet |          6.16          |
-
-GPT-4o demonstrates higher semantic accuracy and greater actionable clarity in generating prioritized response recommendations.
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Python 3.9+
-- PyTorch 2.0+
-- OpenAI / Anthropic API Keys (for VLM reasoning)
-
-### Installation
+### Option A: Upload from local files
 
 ```bash
-git clone https://github.com/Ayanzadeh93/_WildfireVLM_.git
-cd _WildfireVLM_
-pip install -r requirements.txt
+pip install -U "huggingface_hub[cli]"
+huggingface-cli login
+
+# Create each model repository once
+huggingface-cli repo create your-hf-org-or-username/WildfireVLM-base --type model
+
+# Upload checkpoint files
+huggingface-cli upload your-hf-org-or-username/WildfireVLM-base ./checkpoints/base --repo-type model
 ```
 
-### Quick Run
+### Option B: Integrate push/load in PyTorch code
 
 ```python
-from wildfire_vlm import WildfireAnalyzer
+from huggingface_hub import PyTorchModelHubMixin
+import torch.nn as nn
 
-analyzer = WildfireAnalyzer(model="yolov12", vlm="gpt-4o")
-report = analyzer.process_scene("path/to/landsat_image.tif")
-print(report.summary)
+class WildfireVLM(nn.Module, PyTorchModelHubMixin):
+    def __init__(self, ...):
+        super().__init__()
+        ...
+
+model = WildfireVLM(...)
+model.push_to_hub("your-hf-org-or-username/WildfireVLM-base")
+
+# Later
+reloaded = WildfireVLM.from_pretrained("your-hf-org-or-username/WildfireVLM-base")
 ```
 
-## 📜 Citation
+## Publish WildfireVLM dataset on Hugging Face
 
-If you find this work useful in your research, please cite:
+Create and upload a dataset repository, for example:
 
-```bibtex
-@inproceedings{ayanzadeh2026wildfirevlm,
-  title={WildfireVLM: AI-powered Analysis for Early Wildfire Detection and Risk Assessment Using Satellite Imagery},
-  author={Ayanzadeh, Aydin and Dixit, Prakhar and Kamal, Sadia and Halem, Milton},
-  booktitle={IEEE International Geoscience and Remote Sensing Symposium (IGARSS)},
-  year={2026}
-}
+- `your-hf-org-or-username/WildfireVLM-dataset`
+
+```bash
+huggingface-cli repo create your-hf-org-or-username/WildfireVLM-dataset --type dataset
+huggingface-cli upload your-hf-org-or-username/WildfireVLM-dataset ./data --repo-type dataset
 ```
 
----
+Users can then load it with:
+
+```python
+from datasets import load_dataset
+
+dataset = load_dataset("your-hf-org-or-username/WildfireVLM-dataset")
+```
+
+## Helpful links
+
+- Model upload guide: https://huggingface.co/docs/hub/models-uploading
+- `PyTorchModelHubMixin`: https://huggingface.co/docs/huggingface_hub/package_reference/mixins#huggingface_hub.PyTorchModelHubMixin
+- `hf_hub_download`: https://huggingface.co/docs/huggingface_hub/en/guides/download#download-a-single-file
+- Dataset loading guide: https://huggingface.co/docs/datasets/loading
+- Dataset viewer: https://huggingface.co/docs/hub/en/datasets-viewer
